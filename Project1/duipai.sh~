@@ -1,0 +1,14 @@
+#!/bin/sh
+while [ true ]
+do
+./gen
+./yang < test.in > yang.out
+./wu < test.in > wu.out
+if ! diff yang.out wu.out
+then
+cat test.in
+echo WA
+break
+fi
+echo $((i=i+1)) TESTS OK
+done

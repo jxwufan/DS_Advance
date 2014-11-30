@@ -1,0 +1,146 @@
+#include <iostream>
+#include <cstring>
+#include <cstdio>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+const int maxn = 20000;
+const int maxm = 110010;
+int idx;
+
+struct SegNode {
+    int l, r, b, t;
+    int sum;
+    int ch[4];
+};
+SegNode seg[maxm];
+
+int newNode(int l, int r, int b, int t)
+{
+    idx++;
+    seg[idx].l = l;
+    seg[idx].r = r;
+    seg[idx].b = b;
+    seg[idx].t = t;
+    seg[idx].sum = 0;
+    // 将孩子节点的id都初始化为0 
+    memset(seg[idx].ch, 0, sizeof(seg[idx].ch));
+    return idx;
+}
+
+void update(int x, int y, int rt, int val)
+{
+    if (seg[rt].l == seg[rt].r && seg[rt].b == seg[rt].t) {
+        seg[rt].sum += val;
+        return ;
+    }
+    int mx = (seg[rt].l + seg[rt].r) >> 1;
+    int my = (seg[rt].b + seg[rt].t) >> 1;
+    if (x <= mx && y <= my) { 
+        if (seg[rt].ch[0] == 0) {
+            // 节点不存在时就新建，下同。
+            seg[rt].ch[0] = newNode(seg[rt].l, mx, seg[rt].b, my);
+        }
+        update(x, y, seg[rt].ch[0], val);
+    } else if (x > mx && y <= my) {
+        if (seg[rt].ch[1] == 0) {
+            seg[rt].ch[1] = newNode(mx + 1, seg[rt].r, seg[rt].b, my);
+        }
+        update(x, y, seg[rt].ch[1], val);
+    } else if (x <= mx && y > my) {
+        if (seg[rt].ch[2] == 0) {
+            seg[rt].ch[2] = newNode(seg[rt].l, mx, my + 1, seg[rt].t);
+        }
+        update(x, y, seg[rt].ch[2], val);
+    } else if (x > mx && y > my) {
+        if (seg[rt].ch[3] == 0) {
+            seg[rt].ch[3] = newNode(mx + 1, seg[rt].r, my + 1, seg[rt].t);
+        }
+        update(x, y, seg[rt].ch[3], val);
+    }
+    seg[rt].sum = 0;
+    for (int i = 0; i < 4; ++i) {
+        seg[rt].sum += seg[seg[rt].ch[i]].sum;
+    }
+}
+
+int query(int x1, int y1, int x2, int y2, int rt)
+{
+    if (x1 <= seg[rt].l && x2 >= seg[rt].r && y1 <= seg[rt].b && y2 >= seg[rt].t) {
+        return seg[rt].sum;
+    }
+    int mx = (seg[rt].l + seg[rt].r) >> 1;
+    int my = (seg[rt].b + seg[rt].t) >> 1;
+    int ret = 0;
+    if (x1 <= mx && y1 <= my) {
+        // 若节点不存在，则该节点所表示的矩形sum为零，可以忽略 
+        if (seg[rt].ch[0] != 0) {
+            ret += query(x1, y1, x2, y2, seg[rt].ch[0]);
+        }
+    }
+    if (x2 > mx && y1 <= my) {
+        if (seg[rt].ch[1] != 0) {
+            ret += query(x1, y1, x2, y2, seg[rt].ch[1]);
+        }
+    }
+    if (x1 <= mx && y2 > my) {
+        if (seg[rt].ch[2] != 0) {
+            ret += query(x1, y1, x2, y2, seg[rt].ch[2]);
+        }
+    }
+    if (x2 > mx && y2 > my) {
+        if (seg[rt].ch[3] != 0) {
+            ret += query(x1, y1, x2, y2, seg[rt].ch[3]);
+        }
+    }
+    return ret;
+}
+
+int str2int(char *s)
+{
+    int len = strlen(s);
+    int tmp = 0;
+    for (int i = 0; i < len; ++i) {
+        tmp = tmp * 10 + (s[i] - '0');
+    } 
+    return tmp;
+}
+
+int main()
+{
+    char op[3];
+    while (scanf("%s", op) != EOF) {
+        idx = 0;
+        newNode(1, maxn, 1, maxn);
+        seg[0].sum = 0;
+        char s[20];
+        int xx, yy, val;
+        int x1, y1, x2, y2;
+        while (scanf("%s", s)) {
+            if(s[0] == 'E') {
+                break;
+            }
+            if (s[0] == 'I') {
+                op[0] = 'I';
+                continue;
+            } 
+            if (s[0] == 'Q') {
+                op[0] = 'Q';
+                continue;
+            }
+            if (op[0] == 'I') {
+                xx = str2int(s);
+                scanf("%d%d", &yy, &val);
+                update(xx, yy, 1, val);
+            } else if (op[0] == 'Q') {
+                x1 = str2int(s);
+                scanf("%d%d%d", &x2, &y1, &y2);
+                printf("%d\n", query(x1, y1, x2, y2, 1));
+            }
+        }
+    }
+    return 0;
+}
+
