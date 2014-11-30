@@ -1,10 +1,11 @@
 #!/bin/sh
+i=30000
 while [ true ]
 do
 ./gen 
-./wang < test.in > yang.out
-./me < test.in > wu.out
-if ! diff yang.out wu.out
+./bit < test.in > bit.out
+./naive < test.in > naive.out
+if ! diff bit.out naive.out 
 then
 echo WA
 break

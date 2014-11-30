@@ -1,0 +1,172 @@
+#include <iostream>
+#include <cstring>
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <algorithm>
+#include <sstream>
+#include <fstream>
+
+
+using namespace std;
+
+const int MAXN = 10005, MAXM = 10005, MAXINS = 10000005;
+struct node
+{
+	int a, b, c, d; //record data in every instruction.  
+	//(a=-1) means next instructions are I
+	//(b=-1) means next instructions are Q
+};
+node data[MAXINS]; //record every instruction in I and Q
+int ins; //total number of instructions in I and Q
+int convertx[20010], converty[20010];//convert big coordinates into small numbers
+int sortedx[10000005], numx, sortedy[10000005], numy;// used to sort coordinates
+
+unsigned long long c[MAXN][MAXM];
+
+void Add(int x, int y, int v)
+{
+	c[x][y]+=(unsigned long long) v;
+}
+unsigned long long Sum(int xmin, int xmax, int ymin, int ymax)
+{
+	unsigned long long sum = 0;
+	for (int i=xmin;i<=xmax;i++)
+		for (int j=ymin;j<=ymax;j++)
+		sum+=c[i][j];
+	return sum;
+}
+int find_number(string &s)// find first number in string s and then delete it.
+{
+	int x = s.find(' ');
+	string sub = s.substr(0, x); //sub is first number
+	const char* ss = sub.c_str();
+	s.erase(0, x + 1);	//delete first number
+	int number;
+	sscanf(ss, "%d", &number);
+	return number;
+}
+
+void READ()
+{
+	memset(c,0,sizeof(c));
+	memset(data,0,sizeof(data));
+	numx=numy=0;
+	ins = 0; //total instructions in I and Q ; ins at first is 0
+	bool status=0; //status=0 means I ; status=1 means Q
+	string s;// read a line into s
+
+	while (1)
+	{
+		getline(cin,s);
+		//cout << s << endl;
+		if (s[0] == 'E') return;
+		ins++; //add a instruction
+		//in data[ins].a b c d 
+		//(a=-1) means next instructions are I
+		//(b=-1) means next instructions are Q
+		if (s[0] == 'I')//record I
+		{
+			status = 0;
+			data[ins].a = -1;
+			continue;
+		}
+		if (s[0] == 'Q')//record Q
+		{
+			status = 1;
+			data[ins].b = -1;
+			continue;
+		}
+		if (status == 0)//record x y n
+		{
+			data[ins].a = find_number(s);
+			data[ins].b = find_number(s);
+			data[ins].c = find_number(s);
+			sortedx[++numx] = data[ins].a;
+			sortedy[++numy] = data[ins].b;
+		}
+		if (status == 1)//record xmin xmax ymin ymax
+		{
+			data[ins].a = find_number(s);
+			data[ins].b = find_number(s);
+			data[ins].c = find_number(s);
+			data[ins].d = find_number(s);
+			sortedx[++numx] = data[ins].a;
+			sortedx[++numx] = data[ins].b;
+			sortedy[++numy] = data[ins].c;
+			sortedy[++numy] = data[ins].d;
+		}
+	}
+}
+bool cmp(int x, int y)
+{
+	return x<y;
+}
+void CONVERT_NUMBER()
+{
+	//sort coordinates from small to big
+	sort(sortedx + 1, sortedx + 1 + numx, cmp);
+	sort(sortedy + 1, sortedy + 1 + numy, cmp);
+	sortedx[0] = sortedy[0] = -1;
+	int tagx = 0, tagy = 0; //used in convertx[] and converty[]
+	for (int i = 1; i <= numx; i++)
+	if (sortedx[i] != sortedx[i - 1])
+	{
+		//for every new coordinate x, I give it a new tagx
+		convertx[sortedx[i]] = ++tagx;
+	}
+	for (int i = 1; i <= numy; i++)
+	if (sortedy[i] != sortedy[i - 1])
+	{
+		//for every new coordinate y, I give it a new tagy
+		converty[sortedy[i]] = ++tagy;
+	}
+}
+void WORK()
+{
+	bool status=0; //status=0 means I ; status=1 means Q
+	for (int i = 1; i <= ins; i++)
+	{
+		//(a=-1) means next instructions are I
+		//(b=-1) means next instructions are Q
+		if (data[i].a == -1)
+		{
+			status = 0;
+			continue;
+		}
+		if (data[i].b == -1)
+		{
+			status = 1;
+			continue;
+		}
+		if (status == 0)
+		{
+			//cout<<convertx[data[i].a]<<' '<<converty[data[i].b]<<endl;
+			Add(convertx[data[i].a], converty[data[i].b], data[i].c);
+		}
+		if (status == 1)
+		{
+			//xmin=a xmax=b ymin=c ymax=d
+			//sum[xmax,ymax]-sum[xmin-1,ymax]-sum[xmax,ymin-1]+sum[xmin-1,ymin-1]
+			int xmin=convertx[data[i].a];
+			int xmax=convertx[data[i].b];
+			int ymin=converty[data[i].c];
+			int ymax=converty[data[i].d];
+			//cout<<xmin<<' '<<xmax<<' '<<ymin<<' '<<ymax<<endl;
+			//unsigned long long! add first!
+			unsigned long long ans = Sum(xmin,xmax,ymin,ymax);
+			cout << ans << endl;
+		}
+		//if (i % 10 == 0) cout<<"instruction has been done: "<<i<<endl;
+	}
+}
+int main()
+{
+	READ();
+	CONVERT_NUMBER();
+	WORK();
+	return 0;
+}
+
+
+
