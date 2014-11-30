@@ -1,8 +1,8 @@
 #!/bin/sh
-i=30000
 while [ true ]
 do
 ./gen 
+echo ' regions'
 ./bit < test.in > bit.out
 ./naive < test.in > naive.out
 if ! diff bit.out naive.out 
