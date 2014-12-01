@@ -14,7 +14,6 @@ int main()
     srand(time(0));
     n = 32768;
    // n = rand() % 32768; // Number of the regions
-    fprintf(stdout, "%d", n); // Output the number of regions
  //   freopen("test.in", "w", stdout);
     bool flag = false;
     int i,j,k;
